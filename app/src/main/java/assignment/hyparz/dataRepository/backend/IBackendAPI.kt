@@ -1,37 +1,42 @@
-package assignment.hyparz.dataRepository.backend;
+package assignment.hyparz.dataRepository.backend
 
-import android.util.Log;
+import android.util.Log
+import assignment.hyparz.dataRepository.backend.listingApi.ListingAPI
+import assignment.hyparz.dataRepository.backend.IBackendAPICallback
+import assignment.hyparz.dataRepository.backend.IBackendAPI
+import assignment.hyparz.dataRepository.backend.BackendAPIResponse
+import retrofit2.Response
 
-import assignment.hyparz.dataRepository.backend.listingApi.ListingAPI;
-import retrofit2.Response;
+interface IBackendAPI {
+    val listingAPI: ListingAPI
+        get() = listingAPI
 
-public interface IBackendAPI {
+    fun setBackendAPICallback(backendAPICallback: IBackendAPICallback<*>?): IBackendAPI?
+    fun setBackendAPICallback(
+        backendAPICallback: IBackendAPICallback<*>?,
+        responseCode: Int
+    ): IBackendAPI?
 
-    default ListingAPI getListingAPI() {
-        return getListingAPI();
-    }
+    fun setHeader(key: String?, value: String?): IBackendAPI?
 
-    IBackendAPI setBackendAPICallback(IBackendAPICallback backendAPICallback);
-
-    IBackendAPI setBackendAPICallback(IBackendAPICallback backendAPICallback, int responseCode);
-
-    IBackendAPI setHeader(String key, String value);
-
-    static BackendAPIResponse getResponse(Response<BackendAPIResponse> response) {
-        Log.v("IBackendAPI", "!!!! API Response : getResponse : " + response);
-        if (response != null) {
-            int code = response.code();
-            switch (code) {
-                case 200:
-                    return response.body();
-                case 403:
-                    return new BackendAPIResponse(ResponseStatus.failure, " SessionExpired : " + code);
-                default:
-                    return new BackendAPIResponse(ResponseStatus.failure, " Response Code : " + code);
+    companion object {
+        fun getResponse(response: Response<BackendAPIResponse<*>?>?): BackendAPIResponse<*>? {
+            Log.v("IBackendAPI", "!!!! API Response : getResponse : $response")
+            if (response != null) {
+                val code = response.code()
+                return when (code) {
+                    200 -> response.body()
+                    403 -> BackendAPIResponse<Any?>(
+                        ResponseStatus.failure,
+                        " SessionExpired : $code"
+                    )
+                    else -> BackendAPIResponse<Any?>(
+                        ResponseStatus.failure,
+                        " Response Code : $code"
+                    )
+                }
             }
+            return null
         }
-        return null;
     }
-
-
 }

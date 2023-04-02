@@ -24,10 +24,11 @@ class BackendAPI constructor(builder: Builder) : BackendAPIUtils(builder),
         builder.setHeaders(null)
     }
 
-    override fun getListingAPI(): ListingAPI {
-        builder.setServerURL(Constants.serverUrl)
-        return ListingAPI(getRetrofit().create(IListingAPI::class.java))
-    }
+    override val listingAPI: ListingAPI
+        get() {
+            builder.setServerURL(Constants.serverUrl)
+            return ListingAPI(getRetrofit().create(IListingAPI::class.java))
+        }
 
     /**
      * call this when you need callback for [BackendAPI] when execution is completed
@@ -36,7 +37,7 @@ class BackendAPI constructor(builder: Builder) : BackendAPIUtils(builder),
      * @param iBackendAPICallback callback interface
      * @return BackendAPI
      */
-    override fun setBackendAPICallback(iBackendAPICallback: IBackendAPICallback<*>): IBackendAPI {
+    override fun setBackendAPICallback(iBackendAPICallback: IBackendAPICallback<*>?): IBackendAPI {
         this.setBackendAPICallback(iBackendAPICallback, responseCode)
         return this
     }
@@ -50,15 +51,15 @@ class BackendAPI constructor(builder: Builder) : BackendAPIUtils(builder),
      * @return BackendAPI
      */
     override fun setBackendAPICallback(
-        iBackendAPICallback: IBackendAPICallback<*>,
+        iBackendAPICallback: IBackendAPICallback<*>?,
         responseCode: Int
-    ): IBackendAPI {
+    ): IBackendAPI? {
         super.responseCode = responseCode
-        this.iBackendAPICallback = iBackendAPICallback
+        this.iBackendAPICallback = iBackendAPICallback!!
         return this
     }
 
-    private fun deliverOnFailure(call : Call<BackendAPIResponse<*>>, response: Response<*>) {
+    private fun deliverOnFailure(call: Call<BackendAPIResponse<*>>, response: Response<*>) {
         when (val responseCode = response.code()) {
             403 -> {
                 var message: String?
